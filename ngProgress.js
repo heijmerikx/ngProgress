@@ -25,11 +25,20 @@ module.provider('progressbar', function () {
         // Create elements that is needed
             progressbarContainer = angular.element('<div class="progressbar-container"></div>'),
             progressbar = angular.element('<div class="progressbar"></div>'),
+            spinnerContainer = angular.element('<div class="spinner"></div>'),
+            spinner = angular.element('<div class="spinner-icon"></div>'),
 
         //Add CSS3 styles for transition smoothing
             css = document.createElement("style");
         css.type = "text/css";
         css.innerHTML = ".progressbar {-webkit-transition: all 0.5s ease-in-out; -moz-transition: all 0.5s ease-in-out; -o-transition: all 0.5s ease-in-out; transition: all 0.5s ease-in-out;}";
+
+        css.innerHTML = css.innerHTML + "\n@-webkit-keyframes nprogress-spinner { 0%   { -webkit-transform: rotate(0deg);   transform: rotate(0deg);} 100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }}";
+        css.innerHTML = css.innerHTML + "\n@-moz-keyframes nprogress-spinner { 0%   { -moz-transform: rotate(0deg);   transform: rotate(0deg);} 100% { -moz-transform: rotate(360deg); transform: rotate(360deg); }}";
+        css.innerHTML = css.innerHTML + "\n@-o-keyframes nprogress-spinner { 0%   { -o-transform: rotate(0deg);   transform: rotate(0deg);} 100% { -o-transform: rotate(360deg); transform: rotate(360deg); }}";
+        css.innerHTML = css.innerHTML + "\n@-ms-keyframes nprogress-spinner { 0%   { -ms-transform: rotate(0deg);   transform: rotate(0deg);} 100% { -ms-transform: rotate(360deg); transform: rotate(360deg); }}";
+        css.innerHTML = css.innerHTML + "\n@keyframes nprogress-spinner { 0%   { transform: rotate(0deg);   transform: rotate(0deg);} 100% { transform: rotate(360deg); transform: rotate(360deg); }}";
+
         document.body.appendChild(css);
 
         //Styling for the progressbar-container
@@ -50,9 +59,29 @@ module.provider('progressbar', function () {
         progressbar.css('background-color', color);
         progressbar.css('z-index', '99998');
 
+        spinnerContainer.css('display', 'block');
+        spinnerContainer.css('position', 'fixed');
+        spinnerContainer.css('z-index', '100');
+        spinnerContainer.css('top', '15px');
+        spinnerContainer.css('right', '15px');
+
+        spinner.css('width', '14px');
+        spinner.css('height', '14px');
+        spinner.css('border', 'solid 2px transparent');
+        spinner.css('border-top-color', color);
+        spinner.css('border-left-color', color);
+        spinner.css('border-radius', '10px');
+        spinner.css('-webkit-animation', 'nprogress-spinner 400ms linear infinite');
+        spinner.css('-moz-animation', 'nprogress-spinner 400ms linear infinite');
+        spinner.css('-ms-animation', 'nprogress-spinner 400ms linear infinite');
+        spinner.css('-o-animation', 'nprogress-spinner 400ms linear infinite');
+        spinner.css('animation', 'nprogress-spinner 400ms linear infinite');
+
         //Add progressbar to progressbar-container and progressbar-container
         // to body
         progressbarContainer.append(progressbar);
+        spinnerContainer.append(spinner);
+        progressbarContainer.append(spinnerContainer);
         $body.append(progressbarContainer);
 
 
@@ -63,10 +92,15 @@ module.provider('progressbar', function () {
             start: function () {
                 progressbar.css('width', count + '%');
                 progressbar.css('opacity', '1');
+                spinner.css('opacity', '1');
                 $window.interval = setInterval(function () {
-                    var remaining = 100 - count;
-                    count = count + (0.15 * Math.pow(1-Math.sqrt(remaining), 2));
-                    progressbar.css('width', count + '%');
+                    if (count + 1 >= 95) {
+                        clearInterval($window.interval);
+                    } else {
+                        var random = Math.floor(Math.random() * 5);
+                        count = count + random;
+                        progressbar.css('width', count + '%');
+                    }
                 }, 400);
             },
             // Sets the height of the progressbar. Use any valid CSS value
@@ -79,6 +113,8 @@ module.provider('progressbar', function () {
             color: function (color) {
                 progressbar.css('box-shadow', '0px 0px 10px 0px ' + color);
                 progressbar.css('background-color', color);
+                spinner.css('border-top-color', color);
+                spinner.css('border-left-color', color);
             },
             // Returns on how many percent the progressbar is at. Should'nt be needed
             status: function () {
@@ -116,6 +152,7 @@ module.provider('progressbar', function () {
                 progressbar.css('width', count + '%');
                 setTimeout(function () {
                     progressbar.css('opacity', '0');
+                    spinner.css('opacity', '0');
                 }, 500);
                 setTimeout(function () {
                     count = 0;
